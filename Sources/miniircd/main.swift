@@ -44,7 +44,7 @@ let ircServer = IRCServer(configuration: ircConfig)
 
 let webConfig = IRCWebClientServer.Configuration(eventLoopGroup: loopGroup)
 webConfig.host         = config.webURL?.host ?? ircConfig.host
-webConfig.port         = config.webURL?.port ?? 80
+webConfig.port         = config.webURL?.port ?? 1337
 webConfig.ircHost      = ircConfig.host
 webConfig.ircPort      = ircConfig.port
 webConfig.externalHost = config.extWebURL?.host ?? webConfig.host
