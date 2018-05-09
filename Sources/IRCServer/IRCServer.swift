@@ -110,7 +110,7 @@ open class IRCServer {
         logSetupOnAddress(addr)
       }
       else {
-        logger.warn("server reported no local addres?")
+        logger.warn("server reported no local address?")
       }
     }
     catch let error as NIO.IOError {
