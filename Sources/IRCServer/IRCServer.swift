@@ -162,7 +162,8 @@ open class IRCServer {
           .add(name: "com.apple.nio.backpressure",
                handler: BackPressureHandler()) // Oh well :-)
           .then {
-            channel.pipeline.add(handler: IRCChannelHandler())
+            channel.pipeline.add(name: "de.zeezide.nio.irc",
+                                 handler: IRCChannelHandler())
           }
           .then {
             guard let context = self.context else {
