@@ -3,7 +3,7 @@
 ![Swift4](https://img.shields.io/badge/swift-4-blue.svg)
 ![macOS](https://img.shields.io/badge/os-macOS-green.svg?style=flat)
 ![tuxOS](https://img.shields.io/badge/os-tuxOS-green.svg?style=flat)
-![Travis](https://travis-ci.org/NozeIO/swift-nio-irc-webclient.svg?branch=develop)
+![Travis](https://travis-ci.org/NozeIO/swift-nio-irc-webclient.svg?branch=master)
 
 [SwiftNIO IRC](https://github.com/NozeIO/swift-nio-irc)
 is a Internet Relay Chat protocol implementation for
