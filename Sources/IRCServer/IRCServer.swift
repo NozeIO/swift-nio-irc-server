@@ -55,7 +55,7 @@ open class IRCServer {
     
     self.logger         = configuration.logger
     self.eventLoopGroup = configuration.eventLoopGroup
-                   ?? MultiThreadedEventLoopGroup(numThreads: System.coreCount)
+           ?? MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
   }
   
   open func stopOnSignal(_ signal: Int32) {
@@ -110,7 +110,7 @@ open class IRCServer {
         logSetupOnAddress(addr)
       }
       else {
-        logger.warn("server reported no local addres?")
+        logger.warn("server reported no local address?")
       }
     }
     catch let error as NIO.IOError {
@@ -162,7 +162,8 @@ open class IRCServer {
           .add(name: "com.apple.nio.backpressure",
                handler: BackPressureHandler()) // Oh well :-)
           .then {
-            channel.pipeline.add(handler: IRCChannelHandler())
+            channel.pipeline.add(name: "de.zeezide.nio.irc",
+                                 handler: IRCChannelHandler())
           }
           .then {
             guard let context = self.context else {
