@@ -55,7 +55,7 @@ open class IRCServer {
     
     self.logger         = configuration.logger
     self.eventLoopGroup = configuration.eventLoopGroup
-                   ?? MultiThreadedEventLoopGroup(numThreads: System.coreCount)
+           ?? MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
   }
   
   open func stopOnSignal(_ signal: Int32) {

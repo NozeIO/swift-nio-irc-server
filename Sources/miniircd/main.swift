@@ -27,7 +27,7 @@ let config = Config()
 
 // setup a shared thread pool, for all services we run
 
-let loopGroup = MultiThreadedEventLoopGroup(numThreads: System.coreCount)
+let loopGroup = MultiThreadedEventLoopGroup(numberOfThreads: System.coreCount)
 
 
 // MARK: - Setup IRC Server
