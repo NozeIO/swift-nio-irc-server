@@ -1,6 +1,9 @@
 # Dockerfile
 #
 #   docker run --rm -d --name miniircd helje5/nio-miniircd:latest
+#   docker run --rm -d -p 127.0.0.1:1337:80 \
+#                      -p 127.0.0.1:6667:6667 \
+#                      --name miniircd helje5/nio-miniircd:latest
 #
 # Attach w/ new shell
 #
@@ -13,6 +16,8 @@
 #
 
 # Build Image
+# - this just builds miniircd and its depdencies
+# - we also grab the necessary Swift runtime libs from this
 
 FROM swift:4.1 AS builder
 
@@ -32,6 +37,9 @@ RUN cp $(swift build -c ${CONFIGURATION} --show-bin-path)/miniircd \
 
 
 # Deployment Image
+# - we copy in the shared libs from the builder image /usr/lib/swift/linux/
+# - we copy in /opt/miniircd/bin from the builder image
+# - we generate a supervise run script
 
 FROM ubuntu:16.04
 
@@ -59,7 +67,7 @@ RUN bash -c "echo '#!/bin/bash'                                        > run; \
              echo ''                                                  >> run; \
              echo echo RUN Started  \$\(date\) \>\>logs/run.log       >> run; \
              echo ''                                                  >> run; \
-             echo ./bin/miniircd \>\>logs/run.log 2\>\>logs/error.log >> run; \
+             echo stdbuf -oL -eL ./bin/miniircd \>\>logs/run.log 2\>\>logs/error.log >> run; \
              echo ''                                                  >> run; \
              echo echo RUN Finished \$\(date\) \>\>logs/run.log       >> run; \
              echo echo RUN ------------------- \>\>logs/run.log       >> run; \
