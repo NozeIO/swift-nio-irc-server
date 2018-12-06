@@ -14,26 +14,33 @@
 #   docker build -t helje5/nio-miniircd:latest .
 #   docker push helje5/nio-miniircd:latest
 #
+# Rebuild:
+#
+#   docker build --no-cache -t helje5/nio-miniircd:latest .
+#
 
 # Build Image
 # - this just builds miniircd and its depdencies
 # - we also grab the necessary Swift runtime libs from this
 
-FROM swift:4.1 AS builder
+FROM swift:4.2.1 AS builder
 
 LABEL maintainer "Helge Heß <me@helgehess.eu>"
 
 ENV DEBIAN_FRONTEND noninteractive
 ENV CONFIGURATION   release
+ENV NIO_DAEMON_INSTALL_DIR /opt/miniircd/bin
 
 WORKDIR /src/
 COPY Sources        Sources
 COPY Package.swift  .
 
-RUN mkdir -p /opt/miniircd/bin
+RUN mkdir -p ${NIO_DAEMON_INSTALL_DIR}
 RUN swift build -c ${CONFIGURATION}
+
+RUN cp Package.resolved ${NIO_DAEMON_INSTALL_DIR}/miniircd-Package.resolved
 RUN cp $(swift build -c ${CONFIGURATION} --show-bin-path)/miniircd \
-    /opt/miniircd/bin/
+    ${NIO_DAEMON_INSTALL_DIR}/
 
 
 # Deployment Image
@@ -58,6 +65,7 @@ COPY --from=builder /opt/miniircd/bin         /opt/miniircd/bin
 
 EXPOSE 1337
 EXPOSE 6667
+EXPOSE 80
 
 WORKDIR /opt/miniircd
 
@@ -67,7 +75,7 @@ RUN bash -c "echo '#!/bin/bash'                                        > run; \
              echo ''                                                  >> run; \
              echo echo RUN Started  \$\(date\) \>\>logs/run.log       >> run; \
              echo ''                                                  >> run; \
-             echo stdbuf -oL -eL ./bin/miniircd \>\>logs/run.log 2\>\>logs/error.log >> run; \
+             echo stdbuf -oL -eL ./bin/miniircd --web http://0.0.0.0:80/websocket --extweb wss://irc.noze.io:443/websocket \>\>logs/run.log 2\>\>logs/error.log >> run; \
              echo ''                                                  >> run; \
              echo echo RUN Finished \$\(date\) \>\>logs/run.log       >> run; \
              echo echo RUN ------------------- \>\>logs/run.log       >> run; \
