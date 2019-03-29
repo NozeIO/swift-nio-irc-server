@@ -2,7 +2,7 @@
 //
 // This source file is part of the swift-nio-irc open source project
 //
-// Copyright (c) 2018 ZeeZide GmbH. and the swift-nio-irc project authors
+// Copyright (c) 2018-2019 ZeeZide GmbH. and the swift-nio-irc project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -27,19 +27,19 @@ public protocol IRCLogger {
 
 public extension IRCLogger {
   
-  public func error(_ msg: @autoclosure () -> String, _ values: Any?...) {
+  func error(_ msg: @autoclosure () -> String, _ values: Any?...) {
     primaryLog(.Error, msg, values)
   }
-  public func warn (_ msg: @autoclosure () -> String, _ values: Any?...) {
+  func warn (_ msg: @autoclosure () -> String, _ values: Any?...) {
     primaryLog(.Warn, msg, values)
   }
-  public func log  (_ msg: @autoclosure () -> String, _ values: Any?...) {
+  func log  (_ msg: @autoclosure () -> String, _ values: Any?...) {
     primaryLog(.Log, msg, values)
   }
-  public func info (_ msg: @autoclosure () -> String, _ values: Any?...) {
+  func info (_ msg: @autoclosure () -> String, _ values: Any?...) {
     primaryLog(.Info, msg, values)
   }
-  public func trace(_ msg: @autoclosure () -> String, _ values: Any?...) {
+  func trace(_ msg: @autoclosure () -> String, _ values: Any?...) {
     primaryLog(.Trace, msg, values)
   }
   

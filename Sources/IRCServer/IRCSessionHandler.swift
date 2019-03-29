@@ -2,7 +2,7 @@
 //
 // This source file is part of the swift-nio-irc open source project
 //
-// Copyright (c) 2018 ZeeZide GmbH. and the swift-nio-irc project authors
+// Copyright (c) 2018-2019 ZeeZide GmbH. and the swift-nio-irc project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -250,7 +250,11 @@ open class IRCSessionHandler : ChannelInboundHandler,
   {
     // TBD: this looks a little more difficult than necessary.
     guard let channel = channel else {
-      promise?.fail(error: Error.disconnected)
+      #if swift(>=5) // NIO 2 API
+        promise?.fail(Error.disconnected)
+      #else // NIO 1 API
+        promise?.fail(error: Error.disconnected)
+      #endif
       return
     }
     
@@ -262,7 +266,11 @@ open class IRCSessionHandler : ChannelInboundHandler,
     
     let count = messages.count
     if count == 0 {
-      promise?.succeed(result: ())
+      #if swift(>=5) // NIO 2 API
+        promise?.succeed(())
+      #else
+        promise?.succeed(result: ())
+      #endif
       return
     }
     if count == 1 {
@@ -276,10 +284,17 @@ open class IRCSessionHandler : ChannelInboundHandler,
       return channel.flush()
     }
     
-    EventLoopFuture<Void>
-      .andAll(messages.map { channel.write($0) },
-              eventLoop: promise.futureResult.eventLoop)
-      .cascade(promise: promise)
+    #if swift(>=5) // NIO 2 API
+      EventLoopFuture<Void>
+        .andAllSucceed(messages.map { channel.write($0) },
+                       on: promise.futureResult.eventLoop)
+        .cascade(to: promise)
+    #else
+      EventLoopFuture<Void>
+        .andAll(messages.map { channel.write($0) },
+                eventLoop: promise.futureResult.eventLoop)
+        .cascade(promise: promise)
+    #endif
     
     channel.flush()
   }
@@ -360,7 +375,11 @@ extension IRCSessionHandler {
       return yield([])
     }
     
-    let promise : EventLoopPromise<[ T ]> = yieldLoop.newPromise()
+    #if swift(>=5) // NIO 2 API
+      let promise = yieldLoop.makePromise(of: [ T ].self)
+    #else
+      let promise : EventLoopPromise<[ T ]> = yieldLoop.newPromise()
+    #endif
     IRCSessionHandler.getValues(from: sessions, map: map, promise: promise)
     _ = promise.futureResult.map(yield)
   }

@@ -2,7 +2,7 @@
 //
 // This source file is part of the swift-nio-irc open source project
 //
-// Copyright (c) 2018 ZeeZide GmbH. and the swift-nio-irc project authors
+// Copyright (c) 2018-2019 ZeeZide GmbH. and the swift-nio-irc project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -22,8 +22,8 @@ public protocol IRCServerMessageTarget : IRCMessageTarget {
 
 public extension IRCServerMessageTarget {
   
-  public func sendError(_ code: NIOIRC.IRCCommandCode, message: String? = nil,
-                        _ args: String...)
+  func sendError(_ code: NIOIRC.IRCCommandCode, message: String? = nil,
+                 _ args: String...)
   {
     let enrichedArgs = args + [ message ?? code.errorMessage ]
     let message =
@@ -31,13 +31,13 @@ public extension IRCServerMessageTarget {
     sendMessage(message)
   }
   
-  public func sendReply(_ code: NIOIRC.IRCCommandCode, _ args: String...) {
+  func sendReply(_ code: NIOIRC.IRCCommandCode, _ args: String...) {
     let message = IRCMessage(origin: origin, target: target,
                              command: .numeric(code, args))
     sendMessage(message)
   }
   
-  public func sendMotD(_ message: String) {
+  func sendMotD(_ message: String) {
     guard !message.isEmpty else { return }
     let origin = self.origin ?? "??"
     sendReply(.replyMotDStart, "- \(origin) Message of the Day -")
