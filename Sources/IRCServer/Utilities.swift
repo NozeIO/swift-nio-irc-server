@@ -60,7 +60,11 @@ extension EventLoopObject {
                                           promise : EventLoopPromise<[ T ]>)
                 where C.Element : EventLoopObject
   {
-    guard !objects.isEmpty else { return promise.succeed(result: []) }
+    #if swift(>=5) // NIO 2 API
+      guard !objects.isEmpty else { return promise.succeed([]) }
+    #else // NIO 1 API
+      guard !objects.isEmpty else { return promise.succeed(result: []) }
+    #endif
     
     var expectedCount = 0
     var loopToObjects = [ ObjectIdentifier : [ C.Element ] ]()
@@ -93,7 +97,11 @@ extension EventLoopObject {
           values.append(contentsOf: elValues)
           expectedCount -= elValues.count
           if expectedCount < 1 {
-            promise.succeed(result: values)
+            #if swift(>=5) // NIO 2 API
+              promise.succeed(values)
+            #else // NIO 1 API
+              promise.succeed(result: values)
+            #endif
           }
         }
       }

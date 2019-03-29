@@ -1,6 +1,7 @@
 # SwiftNIO IRC Server
 
 ![Swift4](https://img.shields.io/badge/swift-4-blue.svg)
+![Swift5](https://img.shields.io/badge/swift-5-blue.svg)
 ![macOS](https://img.shields.io/badge/os-macOS-green.svg?style=flat)
 ![tuxOS](https://img.shields.io/badge/os-tuxOS-green.svg?style=flat)
 ![Travis](https://travis-ci.org/NozeIO/swift-nio-irc-webclient.svg?branch=master)
@@ -114,7 +115,7 @@ to the web frontend on [http://localhost:1337/](http://localhost:1337).
 An example `Package.swift `importing the necessary modules:
 
 ```swift
-// swift-tools-version:4.0
+// swift-tools-version:5.0
 
 import PackageDescription
 

@@ -85,8 +85,13 @@ open class IRCServer {
       let address : SocketAddress
       
       if let host = configuration.host {
-        address = try SocketAddress
-          .newAddressResolving(host: host, port: configuration.port)
+        #if swift(>=5) // NIO 2 API
+          address = try SocketAddress
+            .makeAddressResolvingHost(host, port: configuration.port)
+        #else // NIO 1 API
+          address = try SocketAddress
+            .newAddressResolving(host: host, port: configuration.port)
+        #endif
       }
       else {
         var addr = sockaddr_in()
@@ -158,22 +163,41 @@ open class IRCServer {
       
       // Set the handlers that are applied to the accepted Channels
       .childChannelInitializer { channel in
-        channel.pipeline
-          .add(name: "com.apple.nio.backpressure",
-               handler: BackPressureHandler()) // Oh well :-)
-          .then {
-            channel.pipeline.add(name: "de.zeezide.nio.irc",
-                                 handler: IRCChannelHandler())
-          }
-          .then {
-            guard let context = self.context else {
-              fatalError("lacking server context?!")
+        #if swift(>=5) // NIO 2 API
+          return channel.pipeline
+            .addHandler(BackPressureHandler(),
+                        name: "com.apple.nio.backpressure") // Oh well :-)
+            .flatMap {
+              channel.pipeline.addHandler(IRCChannelHandler(),
+                                          name: "de.zeezide.nio.irc")
             }
-            let handler = IRCSessionHandler(context: context)
-            
-            return channel.pipeline.add(name: "de.zeezide.nio.ircd",
-                                        handler: handler)
-        }
+            .flatMap {
+              guard let context = self.context else {
+                fatalError("lacking server context?!")
+              }
+              let handler = IRCSessionHandler(context: context)
+              
+              return channel.pipeline.addHandler(handler,
+                                                 name: "de.zeezide.nio.ircd")
+            }
+        #else // NIO 1 API
+          return channel.pipeline
+            .add(name: "com.apple.nio.backpressure",
+                 handler: BackPressureHandler()) // Oh well :-)
+            .then {
+              channel.pipeline.add(name: "de.zeezide.nio.irc",
+                                   handler: IRCChannelHandler())
+            }
+            .then {
+              guard let context = self.context else {
+                fatalError("lacking server context?!")
+              }
+              let handler = IRCSessionHandler(context: context)
+              
+              return channel.pipeline.add(name: "de.zeezide.nio.ircd",
+                                          handler: handler)
+            }
+        #endif // NIO 1 API
       }
       
       // Enable TCP_NODELAY and SO_REUSEADDR for the accepted Channels

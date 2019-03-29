@@ -2,7 +2,7 @@
 //
 // This source file is part of the swift-nio-irc open source project
 //
-// Copyright (c) 2018 ZeeZide GmbH. and the swift-nio-irc project authors
+// Copyright (c) 2018-2019 ZeeZide GmbH. and the swift-nio-irc project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -63,18 +63,30 @@ open class IRCChannel {
   }
   
   open func join(_ session: IRCSessionHandler) -> Bool { // T: wlock by ctx
-    guard subscribers.index(where: {$0 === session}) == nil else {
-      return false // already subscribed
-    }
+    #if swift(>=5)
+      guard subscribers.firstIndex(where: {$0 === session}) == nil else {
+        return false // already subscribed
+      }
+    #else
+      guard subscribers.index(where: {$0 === session}) == nil else {
+        return false // already subscribed
+      }
+    #endif
     
     subscribers.append(session)
     return true
   }
   
   open func part(_ session: IRCSessionHandler) -> Bool { // T: wlock by ctx
-    guard let idx = subscribers.index(where: {$0 === session}) else {
-      return false // not subscribed
-    }
+    #if swift(>=5)
+      guard let idx = subscribers.firstIndex(where: {$0 === session}) else {
+        return false // not subscribed
+      }
+    #else
+      guard let idx = subscribers.index(where: {$0 === session}) else {
+        return false // not subscribed
+      }
+    #endif
     
     subscribers.remove(at: idx)
     return true

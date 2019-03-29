@@ -2,7 +2,7 @@
 //
 // This source file is part of the swift-nio-irc open source project
 //
-// Copyright (c) 2018 ZeeZide GmbH. and the swift-nio-irc project authors
+// Copyright (c) 2018-2019 ZeeZide GmbH. and the swift-nio-irc project authors
 // Licensed under Apache License v2.0
 //
 // See LICENSE.txt for license information
@@ -50,9 +50,15 @@ struct Config {
       if let long = long { argNames = Set([ short, long ]) }
       else { argNames = Set([short])}
       
-      guard let idx = args.index(where: { argNames.contains($0) }) else {
-        return nil
-      }
+      #if swift(>=5)
+        guard let idx = args.firstIndex(where: { argNames.contains($0) }) else {
+          return nil
+        }
+      #else
+        guard let idx = args.index(where: { argNames.contains($0) }) else {
+          return nil
+        }
+      #endif
       guard (idx + 1) < args.endIndex else {
         print("Missing or invalid value for", args[idx], "argument")
         return nil
