@@ -116,14 +116,13 @@ open class IRCSessionHandler : ChannelInboundHandler,
     self.server = context
     self.logger = context.logger
   }
-
   
   // MARK: - Connect / Disconnect
   
-  open func channelActive(ctx: ChannelHandlerContext) {
+  open func channelActive(context: ChannelHandlerContext) {
     assert(channel == nil, "channel is already set?!")
-    self.channel   = ctx.channel
-    self.eventLoop = ctx.channel.eventLoop
+    self.channel   = context.channel
+    self.eventLoop = context.channel.eventLoop
     
     assert(state == .initial)
     
@@ -131,10 +130,10 @@ open class IRCSessionHandler : ChannelInboundHandler,
     // - ident lookup
     // - timeout until nick assignment!
     
-    ctx.fireChannelActive()
+    context.fireChannelActive()
   }
 
-  open func channelInactive(ctx: ChannelHandlerContext) {
+  open func channelInactive(context: ChannelHandlerContext) {
     for channel in joinedChannels {
       server.partChannel(channel, session: self)
     }
@@ -148,10 +147,10 @@ open class IRCSessionHandler : ChannelInboundHandler,
       }
     }
     
-    ctx.fireChannelInactive()
+    context.fireChannelInactive()
     
-    assert(channel === ctx.channel,
-           "different channel \(ctx) \(channel as Optional)")
+    assert(channel === context.channel,
+           "different channel \(context) \(channel as Optional)")
     channel = nil // release cycle
     
     // Note: we do NOT release the loop to avoid races!
@@ -160,24 +159,24 @@ open class IRCSessionHandler : ChannelInboundHandler,
   
   // MARK: - Reading
 
-  open func channelRead(ctx: ChannelHandlerContext, data: NIOAny) {
+  open func channelRead(context: ChannelHandlerContext, data: NIOAny) {
     let message = self.unwrapInboundIn(data)
     do {
       try irc_msgSend(message)
     }
     catch let error as IRCServerError {
-      handleError(error, in: ctx)
+      handleError(error, in: context)
     }
     catch {
-      errorCaught(ctx: ctx, error: error)
+      errorCaught(context: context, error: error)
     }
   }
   
-  public func channelReadComplete(ctx: ChannelHandlerContext) {
-    ctx.flush()
+  public func channelReadComplete(context: ChannelHandlerContext) {
+    context.flush()
   }
 
-  func handleError(_ error: IRCServerError, in ctx: ChannelHandlerContext) {
+  func handleError(_ error: IRCServerError, in context: ChannelHandlerContext) {
     switch error {
       case .nicknameInUse(let nick):
         sendError(.errorNicknameInUse, nick.stringValue)
@@ -204,7 +203,7 @@ open class IRCSessionHandler : ChannelInboundHandler,
     }
   }
 
-  func handleError(_ error: IRCParserError, in ctx: ChannelHandlerContext) {
+  func handleError(_ error: IRCParserError, in context: ChannelHandlerContext) {
     switch error {
       case .invalidNickName(let nick):
         sendError(.errorErrorneusNickname, nick,
@@ -226,17 +225,17 @@ open class IRCSessionHandler : ChannelInboundHandler,
     }
   }
   
-  open func errorCaught(ctx: ChannelHandlerContext, error: Swift.Error) {
+  open func errorCaught(context: ChannelHandlerContext, error: Swift.Error) {
     if let ircError = error as? IRCParserError {
       switch ircError {
         case .transportError, .notImplemented:
-          ctx.fireErrorCaught(error)
+          context.fireErrorCaught(error)
         default:
-          return handleError(ircError, in: ctx)
+          return handleError(ircError, in: context)
       }
     }
     
-    ctx.fireErrorCaught(error)
+    context.fireErrorCaught(error)
   }
 
   
@@ -319,6 +318,27 @@ open class IRCSessionHandler : ChannelInboundHandler,
              """)
   }
   
+
+  #if swift(>=5) // NIO 2 API - default
+  #else // NIO 1 API Shims
+    open func channelActive(ctx context: ChannelHandlerContext) {
+      channelActive(context: context)
+    }
+    open func channelInactive(ctx context: ChannelHandlerContext) {
+      channelInactive(context: context)
+    }
+    open func channelRead(ctx context: ChannelHandlerContext, data: NIOAny) {
+      channelRead(context: context, data: data)
+    }
+    public func channelReadComplete(ctx context: ChannelHandlerContext) {
+      channelReadComplete(context: context)
+    }
+    open func errorCaught(ctx context: ChannelHandlerContext,
+                          error: Swift.Error)
+    {
+      errorCaught(context: context, error: error)
+    }
+  #endif // NIO 1 API Shims
 }
 
 extension IRCSessionHandler : EventLoopObject {}
